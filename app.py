@@ -9,7 +9,7 @@ def get_nearby_places(location, place_type):
         "location": location,
         "type": place_type,
         "radius": "5000",  # in meters
-        "key": "YOUR_API_KEY_HERE"
+        "key": "AIzaSyBVV-ASnn4IHJ-AtlUr71ftlQjg7-ovwG4"
     }
     response = requests.get(PLACES_API_ENDPOINT, params=params)
     data = response.json()
