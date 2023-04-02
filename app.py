@@ -4,10 +4,10 @@ import requests
 # Define the API endpoint for getting nearby places
 PLACES_API_ENDPOINT = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 
-def get_nearby_places(location, type):
+def get_nearby_places(location, place_type):
     params = {
         "location": location,
-        "type": type,
+        "type": place_type,
         "radius": "5000",  # in meters
         "key": "YOUR_API_KEY_HERE"
     }
@@ -17,10 +17,11 @@ def get_nearby_places(location, type):
 
 # Define the Streamlit app
 def app():
+    # Set up the app layout
+    st.set_page_config(page_title="Travel Guide", page_icon=":airplane:", layout="wide")
     st.title("Travel Guide")
-    st.write("Tell me your location and the type of places you want to visit, and I'll suggest some nearby options!")
     
-    # User input
+    # Get user input for location and place type
     location = st.text_input("Where are you now?")
     place_type = st.selectbox("What type of place do you want to visit?", [
         "All", "Museums", "Restaurants", "Hotels", "Parks"
@@ -38,28 +39,28 @@ def app():
     elif place_type == "Parks":
         place_type = "park"
     
-    # Get nearby places based on user input
+    # Display nearby places based on user input
     if location:
+        st.subheader("Nearby Places")
         nearby_places = get_nearby_places(location, place_type)
         if nearby_places:
-            st.write("Here are some nearby places you might be interested in:")
             for place in nearby_places:
-                st.write("- " + place["name"])
+                st.write(f"- {place['name']} ({place['vicinity']})")
         else:
             st.write("Sorry, I couldn't find any nearby places of that type.")
     
-    st.write("---")
-    st.write("Do you want to visit places of a similar type near one of the nearby places I just suggested?")
-    select_place = st.selectbox("Select a nearby place", [place["name"] for place in nearby_places])
-    if select_place:
-        selected_place = next(place for place in nearby_places if place["name"] == select_place)
-        similar_places = get_nearby_places(
-            f"{selected_place['geometry']['location']['lat']},{selected_place['geometry']['location']['lng']}",
-            selected_place["types"][0]
-        )
-        if similar_places:
-            st.write("Here are some similar places nearby:")
-            for place in similar_places:
-                st.write("- " + place["name"])
-        else:
-            st.write("Sorry, I couldn't find any similar places nearby.")
+    # Allow user to select a nearby place and show similar places
+    if nearby_places:
+        st.subheader("Similar Places")
+        select_place = st.selectbox("Select a nearby place to see similar places", [place["name"] for place in nearby_places])
+        if select_place:
+            selected_place = next(place for place in nearby_places if place["name"] == select_place)
+            similar_places = get_nearby_places(
+                f"{selected_place['geometry']['location']['lat']},{selected_place['geometry']['location']['lng']}",
+                selected_place["types"][0]
+            )
+            if similar_places:
+                for place in similar_places:
+                    st.write(f"- {place['name']} ({place['vicinity']})")
+            else:
+                st.write("Sorry, I couldn't find any similar places nearby.")
